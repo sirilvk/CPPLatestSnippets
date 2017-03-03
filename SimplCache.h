@@ -4,7 +4,7 @@
 #include <is_shared_ptr.h>
 
 template<typename Key, typename Type>
-class ICache_T
+class SimplCache_T
 {
 private:
 	typedef typename std::unordered_map<Key, Type>::iterator CacheIterator;
@@ -27,10 +27,10 @@ private:
 #endif
 
 public:
-	ICache_T() = default;
-	ICache_T(const ICache_T&) = delete;
-	ICache_T(ICache_T&&) = delete;
-	ICache_T& operator=(const ICache_T&) = delete;
+	SimplCache_T() = default;
+	SimplCache_T(const SimplCache_T&) = delete;
+	SimplCache_T(SimplCache_T&&) = delete;
+	SimplCache_T& operator=(const SimplCache_T&) = delete;
 
 	void ClearAll()
 	{
@@ -87,4 +87,4 @@ public:
 };
 
 template <typename T>
-using ICache = ICache_T<std::string, T>;
+using SimplCache = SimplCache_T<std::string, T>;

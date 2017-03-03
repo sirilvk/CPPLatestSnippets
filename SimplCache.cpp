@@ -1,14 +1,14 @@
-#include <ICache.h>
+#include <SimplCache.h>
 #include <catch.h>
 
-static int TestICache(int i)
+static int TestSimplCache(int i)
 {
 
 
 	return i;
 }
 
-TEST_CASE("ICache Unit Test", "[ICache UT]") {
+TEST_CASE("SimplCache Unit Test", "[SimplCache UT]") {
 
 	struct TICstruct
 	{
@@ -24,7 +24,7 @@ TEST_CASE("ICache Unit Test", "[ICache UT]") {
 
 
 	TICstruct tmem1("test1", "test1"), tmem2("test2", "test2");
-	ICache<TICstruct> tCache;
+	SimplCache<TICstruct> tCache;
 	tCache.PutByKey(tmem1);
 	tCache.PutByKey(tmem2);
 
@@ -35,7 +35,7 @@ TEST_CASE("ICache Unit Test", "[ICache UT]") {
 	REQUIRE(tCache.GetByKey("test4", tmem3) == false);
 
 
-	ICache<std::shared_ptr<TICstruct>> stCache;
+	SimplCache<std::shared_ptr<TICstruct>> stCache;
 	std::shared_ptr<TICstruct> sptr(std::make_shared<TICstruct>("stest1", "stest1"));
 	std::shared_ptr<TICstruct> sptr1;
 	stCache.PutByKey(sptr);
