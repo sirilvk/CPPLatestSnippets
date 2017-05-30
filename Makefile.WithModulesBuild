@@ -1,0 +1,90 @@
+#from https://felixcrux.com/blog/creating-basic-makefile
+
+SHELL = /bin/sh
+CC    = g++
+
+CFLAGS        = -std=c++14 -I./util/ -I./
+LDFLAGS       = -ldl -lpthread
+PLDFLAGS      = -shared # plugin ld flags
+PFLAGS        = -fPIC   # plugin compilter flags 
+GLDFLAGS      = -rdynamic # dynamic loading
+
+DEBUGFLAGS   = -g -DNDEBUG
+RELEASEFLAGS = -O2 -DNDEBUG -fpermissive
+
+SOURCES = $(shell find . -name \*.cpp -o -name \*.c | grep -v windows | grep -v plugins| grep -v win32 | grep -v packages | tr '\n' ' ' )
+HEADERS = $(shell find . -name \*.h  | tr '\n' ' ' )
+OBJECTS=$(SOURCES:.cpp=.o)
+
+BINDIR = ./bin/linux
+
+define make_plugin
+# define plugin specific configs inside the plugin directories as <pluginname>_PFLAGS
+sinclude plugins/$(2)/MakeIncludes.mk
+%.PLUGIN_OBJS_$(2).o: %.cpp
+	$(CC) $(CFLAGS) $(PFLAGS) $$($(2)_PFLAGS) $(DEBUGFLAGS) -c -o $$@ $$<
+
+PLUGIN_SRCS_$(2) = $$(shell find plugins/$(2) -name \*.cpp)
+PLUGIN_OBJS_$(2) = $$(patsubst %.cpp,%.PLUGIN_OBJS_$(2).o,$$(PLUGIN_SRCS_$(2)))
+
+# define plugin specific LD flags as <pluginname>_LDFLAGS inside the plugin directories MakeIncludes.mk
+$(1): $$(PLUGIN_OBJS_$(2))
+	$(CC) $(CFLAGS) -o $(BINDIR)/$(1) $$^ $(LDFLAGS) $(PLDFLAGS) $$($(2)_LDFLAGS)
+endef
+
+PLUGINDIR = TestModule
+
+# expand plugin targets here
+$(foreach var,$(PLUGINDIR),$(eval $(call make_plugin,$(addsuffix .so,$(addprefix lib,$(var))),$(var))))
+
+TARGET  = TestExec
+PLUGIN_TARGET = $(addsuffix .so,$(addprefix lib,$(PLUGINDIR)))
+
+all: $(BINDIR) $(TARGET) $(PLUGIN_TARGET)
+
+plugin: $(PLUGIN_TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) -o $(BINDIR)/$@ $^ $(LDFLAGS) $(GLDFLAGS)
+
+release: $(OBJECTS)
+	$(CC) $(CFLAGS) $(RELEASEFLAGS) -o $(BINDIR)/$@ $^ $(GLDFLAGS)
+
+profile: CFLAGS += -pg
+profile: $(TARGET)
+
+install:
+	@ cat ReleaseVersion.txt; set -e; read -p "Enter New Version:" version; dir=./build/$$version; \
+	mkdir $$dir; cp -r $(BINDIR)/$(TARGET) $$dir/; mkdir $$dir/config ; echo $$version > ReleaseVersion.txt; \
+	cp ./config/* $$dir/config/; cp install.sh ReleaseVersion.txt $$dir/;
+
+install-strip: release
+	install -D -s $(TARGET) $(BINDIR)/$(TARGET)
+
+uninstall:
+	-rm $(BINDIR)/$(TARGET)
+
+
+clean:
+	-find . -name "*.o" -type f -delete
+	-rm -f $(BINDIR)/*
+
+distclean: clean
+	-rm -f $(TARGET)
+
+$(BINDIR):
+	mkdir -p $(BINDIR)
+
+run: $(TARGET)
+	$(BINDIR)/$(TARGET) dev.processx /testmap
+
+test: $(TARGET)
+	$(BINDIR)/$(TARGET) dev /test
+
+.SECONDEXPANSION:
+
+%.o: %.cpp
+	$(CC) $(CFLAGS) $(DEBUGFLAGS) -c -o $@ $<
+
+.PHONY : all profile release \
+	install install-strip uninstall clean distclean
