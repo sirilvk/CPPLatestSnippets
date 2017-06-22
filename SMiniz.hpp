@@ -1,6 +1,6 @@
 /*
  * C++ Wrapper for Miniz compression library 
- *
+ * https://github.com/richgel999/miniz
  */
 
 #pragma once
