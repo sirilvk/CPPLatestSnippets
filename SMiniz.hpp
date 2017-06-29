@@ -188,7 +188,6 @@ public:
 	    {
 		if (index < length)
 		{
-		    // now read data if available
 		    if ((length - index) > BUF_SIZE)
 		    {
 			_stream.next_in = srcData + index;
@@ -201,6 +200,10 @@ public:
 			_stream.avail_in = (length - index);
 			index += (length - index);
 		    }
+		}
+		else
+		{
+		    break;
 		}
 	    }
 
