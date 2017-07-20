@@ -1,7 +1,7 @@
 #pragma once
 #include <unordered_map>
 #include <memory>
-#include <is_shared_ptr.h>
+#include "is_shared_ptr.h"
 
 template<typename Key, typename Type>
 class SimplCache_T
@@ -67,13 +67,15 @@ public:
 
 #else
 	// SFINAE below works perfectly fine for linux but as usual MSVC fails to understand that...
-	
-	typename std::enable_if<!is_shared_ptr<Type>::value, void>::type PutByKey(Type& value)
+
+	template <typename U = Type>
+	typename std::enable_if<!is_shared_ptr<U>::value, void>::type PutByKey(U& value)
 	{
 		cache.insert(std::make_pair(value.GetKey(), value));
 	}
 
-	typename std::enable_if<is_shared_ptr<Type>::value, void>::type PutByKey(Type& value)
+	template <typename U = Type>
+	typename std::enable_if<is_shared_ptr<U>::value, void>::type PutByKey(U& value)
 	{
 		cache.insert(std::make_pair(value->GetKey(), value));
 	}

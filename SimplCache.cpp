@@ -1,5 +1,6 @@
-#include <SimplCache.h>
-#include <catch.h>
+#include "SimplCache.h"
+#define CATCH_CONFIG_MAIN
+#include "catch.h"
 
 static int TestSimplCache(int i)
 {
