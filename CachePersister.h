@@ -10,6 +10,11 @@ template <bool> struct selectFn {};
 typedef selectFn<true> TrueCond;
 typedef selectFn<false> FalseCond;
 
+template <typename Type>
+struct is_shared_ptr : std::false_type {};
+template <typename Type>
+struct is_shared_ptr<std::shared_ptr<Type>> : std::true_type {};
+
 struct QMsg
 {
   std::string _stream;
